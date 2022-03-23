@@ -4,6 +4,11 @@ LABEL       author="Isaac A. && Kasper J." maintainer="isaac@isaacs.site"
 
 ENV         DEBIAN_FRONTEND=noninteractive
 
+EXPOSE 8080/TCP
+EXPOSE 28015/TCP
+EXPOSE 28015/UDP
+EXPOSE 28016/TCP
+
 RUN			dpkg --add-architecture i386 \
 			&& apt update \
 			&& apt upgrade -y \
@@ -12,7 +17,7 @@ RUN			dpkg --add-architecture i386 \
 			&& apt install -y nodejs \
 			&& mkdir /node_modules \
 			&& npm install --prefix / ws \
-			&& useradd -d /home/container -m container
+			&& useradd -d /home/container -m container 
 
 RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && \
     apt-get install -y nodejs \
@@ -30,9 +35,6 @@ RUN mkdir -p /home/steam/steamcmd/ && \
 
 USER 		container
 ENV  		USER=container HOME=/home/container
-
-EXPOSE 28015
-EXPOSE 28016
 
 WORKDIR 	/home/container
 

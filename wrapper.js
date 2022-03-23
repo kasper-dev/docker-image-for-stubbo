@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-const WebSocket = require('ws')
 
 var startupCmd = "";
 const fs = require("fs");
@@ -39,10 +38,14 @@ var exec = require("child_process").exec;
 console.log("Starting Rust...");
 
 var exited = false;
-const gameProcess = exec(startupCmd);
+
+const gameProcess = exec(`./RustDedicated ${startupCmd}`); //RustDedicated ${startupCmd}
 gameProcess.stdout.on('data', filter);
 gameProcess.stderr.on('data', filter);
 gameProcess.on('exit', function (code, signal) {
+	if (signal) {
+		console.log(signal)
+	}
 	exited = true;
 
 	if (code) {
@@ -50,7 +53,6 @@ gameProcess.on('exit', function (code, signal) {
 		// process.exit(code);
 	}
 });
-
 function initialListener(data) {
 	const command = data.toString().trim();
 	if (command === 'quit') {
@@ -81,41 +83,18 @@ var poll = function () {
 		return JSON.stringify(packet);
 	}
 
-	var serverHostname = "localhost";
-	var serverPort = 28016;
-	var serverPassword = 28016;
 	var WebSocket = require("ws");
-	var ws = new WebSocket("ws://" + serverHostname + ":" + serverPort + "/" + serverPassword);
+	var ws = new WebSocket("ws://127.0.0.1:28016/docker");
 
 	ws.on("open", function open() {
 		console.log("Connected to RCON. Generating the map now. Please wait until the server status switches to \"Running\".");
 		waiting = false;
 	});
 
-	ws.on("message", function (data, flags) {
-		try {
-			var json = JSON.parse(data);
-			if (json !== undefined) {
-				if (json.Message !== undefined && json.Message.length > 0) {
-					console.log(json.Message);
-					const fs = require("fs");
-					fs.appendFile("latest.log", "\n" + json.Message, (err) => {
-						if (err) console.log("Callback error in appendFile:" + err);
-					});
-				}
-			} else {
-				console.log("Error: Invalid JSON received");
-			}
-		} catch (e) {
-			if (e) {
-				console.log(e);
-			}
-		}
-	});
 
 	ws.on("error", function (err) {
 		waiting = true;
-		console.log("Waiting for RCON to come up...");
+		console.log(`Waiting for RCON to come up...` + err);
 		setTimeout(poll, 5000);
 	});
 
